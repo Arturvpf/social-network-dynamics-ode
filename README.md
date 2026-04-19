@@ -58,7 +58,7 @@ All simulations are self-contained; no external data is required.
 ## Authors
 
 - Andreywid Yago Lima de Souza (ayls@cin.ufpe.br)
-- Artur Vinicius Pereira Fernandes (avpf@cin.ufpe.br)
+- Artur Vinicius Pereira Fernandes (arturvpf3@gmail.com)
 - Breno Ramos de Souza Gomes (brsg@cin.ufpe.br)
 - Valter Sanches Martins Neto (vsmn@cin.ufpe.br)
 - Manoel Lira de Carvalho (mlc6@cin.ufpe.br)
