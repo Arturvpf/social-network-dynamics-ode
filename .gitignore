@@ -17,6 +17,14 @@ ENV/
 build/
 dist/
 *.egg-info/
+src/*.egg-info/
+
+# Test & coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 # IDE / editor
 .vscode/
