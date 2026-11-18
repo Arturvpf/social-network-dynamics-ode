@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Network Dynamics ODE — Interactive Dynamical Laboratory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=STIX+Two+Text:ital,wght@0,600;1,500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-page: #F5F8FC;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #EDF2F8;
+      --ink: #0F1D2E;
+      --ink-secondary: #4A5B70;
+      --rule: #CFDCEB;
+      --rule-strong: #9FB4CC;
+      --c-eng: #0F4C81;
+      --c-time: #0D8A72;
+      --c-div: #C05621;
+      --c-fat: #6B3FA0;
+      --c-crit: #B91C1C;
+      --c-ok-bg: #E6F5F0;
+      --c-ok-ink: #0A614F;
+      --c-warn-bg: #FDECEC;
+      --c-warn-ink: #991B1B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-page);
+      color: var(--ink);
+      line-height: 1.45;
+      font-variant-numeric: tabular-nums;
+      min-height: 100vh;
+    }
+
+    .math {
+      font-family: "STIX Two Text", "Cambria Math", Georgia, serif;
+      font-style: italic;
+    }
+
+    header.topbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--rule);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-block h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+    }
+
+    .brand-block p {
+      font-size: 0.84rem;
+      color: var(--ink-secondary);
+      max-width: 72ch;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .segmented {
+      display: inline-flex;
+      background: var(--bg-subtle);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 2px;
+    }
+
+    .segmented button {
+      border: none;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 11px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .segmented button.active {
+      background: var(--bg-surface);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(15, 29, 46, 0.08);
+    }
+
+    button.btn-secondary {
+      border: 1px solid var(--rule-strong);
+      background: var(--bg-surface);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button.btn-secondary:hover,
+    .segmented button:hover {
+      color: var(--c-eng);
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input[type="range"]:focus-visible {
+      outline: 2px solid var(--c-eng);
+      outline-offset: 2px;
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      min-height: calc(100vh - 69px);
+    }
+
+    aside.controls {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--rule);
+      padding: 18px 20px 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .control-group {
+      border-top: 1px solid var(--rule);
+      padding-top: 14px;
+    }
+
+    .control-group:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .group-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .preset-select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--rule-strong);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      color: var(--ink);
+      background: var(--bg-surface);
+    }
+
+    .equation-box {
+      background: var(--bg-subtle);
+      border-left: 3px solid var(--c-eng);
+      padding: 10px 12px;
+      font-size: 0.83rem;
+      color: var(--ink);
+      border-radius: 0 6px 6px 0;
+      line-height: 1.65;
+    }
+
+    .slider-row {
+      margin-bottom: 10px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.81rem;
+      margin-bottom: 3px;
+    }
+
+    .slider-label {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .slider-meta {
+      color: var(--ink-secondary);
+      font-size: 0.77rem;
+    }
+
+    .crit-tag {
+      color: var(--c-crit);
+      font-size: 0.73rem;
+      margin-left: 5px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--c-eng);
+      cursor: pointer;
+      height: 5px;
+    }
+
+    .mode-extra {
+      background: #F7FAFE;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 11px 12px;
+    }
+
+    main.stage {
+      padding: 18px 22px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-x: hidden;
+    }
+
+    .telemetry-strip {
+      background: var(--bg-surface);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      divide-x: 1px solid var(--rule);
+    }
+
+    .telemetry-cell {
+      padding: 12px 16px;
+      border-right: 1px solid var(--rule);
+    }
+
+    .telemetry-cell:last-child {
+      border-right: none;
+    }
+
+    .tel-name {
+      font-size: 0.77rem;
+      color: var(--ink-secondary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .tel-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .tel-sub {
+      font-size: 0.76rem;
+      color: var(--ink-secondary);
+      margin-top: 2px;
+    }
+
+    .status-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .status-ok {
+      background: var(--c-ok-bg);
+      color: var(--c-ok-ink);
+    }
+
+    .status-warn {
+      background: var(--c-warn-bg);
+      color: var(--c-warn-ink);
+    }
+
+    .canvas-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .plot-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 12px 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .plot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .plot-header h2 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .plot-hint {
+      font-size: 0.75rem;
+      color: var(--ink-secondary);
+    }
+
+    .legend-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.76rem;
+      color: var(--ink-secondary);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .swatch {
+      width: 11px;
+      height: 3px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    canvas.plot-canvas {
+      width: 100%;
+      height: 275px;
+      display: block;
+      border-radius: 4px;
+      background: #FAFCFF;
+    }
+
+    #phaseCanvas {
+      cursor: crosshair;
+    }
+
+    #orbit3dCanvas {
+      cursor: grab;
+    }
+
+    #orbit3dCanvas:active {
+      cursor: grabbing;
+    }
+
+    @media (max-width: 1120px) {
+      .workbench {
+        grid-template-columns: 1fr;
+      }
+      aside.controls {
+        border-right: none;
+        border-bottom: 1px solid var(--rule);
+      }
+      .telemetry-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .telemetry-cell:nth-child(2) {
+        border-right: none;
+      }
+      .telemetry-cell:nth-child(1),
+      .telemetry-cell:nth-child(2) {
+        border-bottom: 1px solid var(--rule);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .canvas-grid {
+        grid-template-columns: 1fr;
+      }
+      .telemetry-strip {
+        grid-template-columns: 1fr;
+      }
+      .telemetry-cell {
+        border-right: none;
+        border-bottom: 1px solid var(--rule);
+      }
+      .telemetry-cell:last-child {
+        border-bottom: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-block">
+      <h1 id="uiTitle">Social Network Dynamics ODE — Interactive Laboratory</h1>
+      <p id="uiSubtitle">Coupled nonlinear differential equations for user engagement <span class="math">E(t)</span>, platform time <span class="math">T(t)</span>, and content diversity <span class="math">D(t)</span> (CIn/UFPE).</p>
+    </div>
+    <div class="header-actions">
+      <div class="segmented" role="tablist" aria-label="Laboratory Mode">
+        <button type="button" class="active" data-mode="baseline" id="modeBaseline">3D Model</button>
+        <button type="button" data-mode="fatigue" id="modeFatigue">4D Fatigue</button>
+        <button type="button" data-mode="solver" id="modeSolver">Euler vs RK4</button>
+        <button type="button" data-mode="policy" id="modePolicy">Policy Optimization</button>
+      </div>
+      <button type="button" class="btn-secondary" id="btnClearTraces">Clear Extra Orbits</button>
+      <button type="button" class="btn-secondary" id="btnReset">Reset Baseline</button>
+      <div class="segmented" aria-label="Language">
+        <button type="button" class="active" data-lang="en" id="langEn">EN</button>
+        <button type="button" data-lang="pt" id="langPt">PT-BR</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="workbench">
+    <aside class="controls">
+      <div class="control-group">
+        <div class="group-title">
+          <span id="lblPresetGroup">Behavioral Regime Preset</span>
+        </div>
+        <select id="presetSelect" class="preset-select" aria-label="Select parameter preset">
+          <option value="baseline">Baseline — Stable Spiral Sink (R₀ = 6.43)</option>
+          <option value="dropout">Platform Abandonment (R₀ = 0.50 &lt; 1)</option>
+          <option value="high_engagement">High-Retention Feed (R₀ = 18.88)</option>
+          <option value="diversity_fatigue">Information Overload (High κ, η)</option>
+          <option value="balanced_wellbeing">Balanced Digital Well-Being</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <div class="equation-box" id="equationBox">
+          <div><span class="math">dE/dt = α·tanh(T) − β·E − κ·D</span></div>
+          <div><span class="math">dT/dt = γ·E·(1 − T/T<sub>max</sub>) − δ·T</span></div>
+          <div><span class="math">dD/dt = η·E − θ·D</span></div>
+        </div>
+      </div>
+
+      <div class="control-group mode-extra" id="modeExtraBox" style="display:none;"></div>
+
+      <div class="control-group">
+        <div class="group-title">
+          <span id="lblParamsGroup">Model Parameters</span>
+          <span class="slider-meta" id="lblCritHint">Red = R₀=1 threshold</span>
+        </div>
+        <div id="paramSliders"></div>
+      </div>
+
+      <div class="control-group">
+        <div class="group-title">
+          <span id="lblInitGroup">Initial State y(0) &amp; Horizon</span>
+        </div>
+        <div id="initSliders"></div>
+      </div>
+    </aside>
+
+    <main class="stage">
+      <section class="telemetry-strip" aria-label="Live Mathematical Diagnostics">
+        <div class="telemetry-cell">
+          <div class="tel-name">
+            <span id="telR0Label">Activation Number R₀</span>
+            <span class="status-pill status-ok" id="regimeBadge">Active</span>
+          </div>
+          <div class="tel-value" id="valR0">6.4286</div>
+          <div class="tel-sub" id="subR0">Transcritical threshold at R₀ = 1.000</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="tel-name">
+            <span id="telEqLabel">Interior Equilibrium (E*, T*, D*)</span>
+          </div>
+          <div class="tel-value" id="valEq">(4.500, 5.070, 6.000)</div>
+          <div class="tel-sub" id="subEq">Asymptotically Stable Spiral</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="tel-name">
+            <span id="telEigenLabel">Jacobian Spectrum J(E*, T*, D*)</span>
+          </div>
+          <div class="tel-value" id="valEigLead" style="font-size:0.93rem;">−0.0400 ± 0.0200i</div>
+          <div class="tel-sub" id="subEig3">λ₃ = −0.0888</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="tel-name">
+            <span id="telRHLabel">Routh–Hurwitz Margin Δ₂</span>
+          </div>
+          <div class="tel-value" id="valRH">+0.00201</div>
+          <div class="tel-sub" id="subRH">c₁ &gt; 0, c₃ &gt; 0, c₁c₂ − c₃ &gt; 0</div>
+        </div>
+      </section>
+
+      <section class="canvas-grid">
+        <div class="plot-panel">
+          <div class="plot-header">
+            <h2 id="titleTimePlot">Temporal Evolution of State Variables</h2>
+            <span class="plot-hint" id="hintTimePlot">Dotted lines mark equilibrium (E*, T*, D*)</span>
+          </div>
+          <div class="legend-inline" id="timeLegend">
+            <span class="legend-item"><span class="swatch" style="background:var(--c-eng)"></span><span id="legE">Engagement E(t)</span></span>
+            <span class="legend-item"><span class="swatch" style="background:var(--c-time)"></span><span id="legT">Usage Time T(t)</span></span>
+            <span class="legend-item"><span class="swatch" style="background:var(--c-div)"></span><span id="legD">Diversity D(t)</span></span>
+            <span class="legend-item" id="legFatWrap" style="display:none;"><span class="swatch" style="background:var(--c-fat)"></span><span id="legF">Fatigue F(t)</span></span>
+          </div>
+          <canvas id="timeCanvas" class="plot-canvas"></canvas>
+        </div>
+
+        <div class="plot-panel">
+          <div class="plot-header">
+            <h2 id="titlePhasePlot">2D Phase Plane: Engagement E vs Time T</h2>
+            <span class="plot-hint" id="hintPhasePlot">Click anywhere on plot to launch a new orbit</span>
+          </div>
+          <div class="legend-inline">
+            <span class="legend-item"><span class="swatch" style="background:var(--c-eng)"></span><span id="legPrimaryOrbit">Primary trajectory</span></span>
+            <span class="legend-item"><span class="swatch" style="background:var(--c-crit)"></span><span id="legFixedPoint">Attractor (T*, E*)</span></span>
+          </div>
+          <canvas id="phaseCanvas" class="plot-canvas"></canvas>
+        </div>
+
+        <div class="plot-panel">
+          <div class="plot-header">
+            <h2 id="title3dPlot">3D State-Space Trajectory (T, D, E)</h2>
+            <span class="plot-hint" id="hint3dPlot">Drag horizontally or vertically to rotate</span>
+          </div>
+          <div class="legend-inline">
+            <span class="legend-item"><span id="leg3dInfo">Azimuth: −50° | Elevation: 24°</span></span>
+          </div>
+          <canvas id="orbit3dCanvas" class="plot-canvas"></canvas>
+        </div>
+
+        <div class="plot-panel">
+          <div class="plot-header">
+            <h2 id="titleAuxPlot">Transcritical Bifurcation Curve wrt α</h2>
+            <span class="plot-hint" id="hintAuxPlot">Live marker shows current α and R₀ = 1 critical point</span>
+          </div>
+          <div class="legend-inline" id="auxLegend">
+            <span class="legend-item"><span class="swatch" style="background:var(--c-eng)"></span><span>E*(α)</span></span>
+            <span class="legend-item"><span class="swatch" style="background:var(--c-time)"></span><span>T*(α)</span></span>
+            <span class="legend-item"><span class="swatch" style="background:var(--c-div)"></span><span>D*(α)</span></span>
+            <span class="legend-item"><span class="swatch" style="background:var(--c-crit)"></span><span>α_c (R₀ = 1)</span></span>
+          </div>
+          <canvas id="auxCanvas" class="plot-canvas"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const PRESETS = {
+        baseline: { alpha: 0.15, beta: 0.02, kappa: 0.01, gamma: 0.10, delta: 0.07, eta: 0.08, theta: 0.06, T_max: 24.0 },
+        dropout: { alpha: 0.018, beta: 0.03, kappa: 0.015, gamma: 0.08, delta: 0.09, eta: 0.08, theta: 0.06, T_max: 24.0 },
+        high_engagement: { alpha: 0.28, beta: 0.018, kappa: 0.006, gamma: 0.16, delta: 0.06, eta: 0.06, theta: 0.07, T_max: 24.0 },
+        diversity_fatigue: { alpha: 0.22, beta: 0.015, kappa: 0.045, gamma: 0.14, delta: 0.06, eta: 0.16, theta: 0.035, T_max: 24.0 },
+        balanced_wellbeing: { alpha: 0.14, beta: 0.025, kappa: 0.008, gamma: 0.075, delta: 0.085, eta: 0.11, theta: 0.055, T_max: 24.0 }
+      };
+
+      const I18N = {
+        en: {
+          title: "Social Network Dynamics ODE — Interactive Laboratory",
+          subtitle: "Coupled nonlinear differential equations for user engagement E(t), platform time T(t), and content diversity D(t) (CIn/UFPE).",
+          modeBaseline: "3D Model",
+          modeFatigue: "4D Fatigue",
+          modeSolver: "Euler vs RK4",
+          modePolicy: "Policy Optimization",
+          clearTraces: "Clear Extra Orbits",
+          reset: "Reset Baseline",
+          presetGroup: "Behavioral Regime Preset",
+          paramsGroup: "Model Parameters",
+          critHint: "Red = R₀=1 threshold",
+          initGroup: "Initial State y(0) & Horizon",
+          telR0: "Activation Number R₀",
+          telEq: "Interior Equilibrium (E*, T*, D*)",
+          telEig: "Jacobian Spectrum J(E*, T*, D*)",
+          telRH: "Routh–Hurwitz Margin Δ₂",
+          activeBadge: "Active (R₀ > 1)",
+          dropoutBadge: "Dropout (R₀ ≤ 1)",
+          stableSpiral: "Asymptotically Stable Spiral",
+          stableNode: "Asymptotically Stable Node",
+          originStable: "Origin (0, 0, 0) Globally Stable",
+          titleTime: "Temporal Evolution of State Variables",
+          hintTime: "Dotted lines mark equilibrium (E*, T*, D*)",
+          titlePhase: "2D Phase Plane: Engagement E vs Time T",
+          hintPhase: "Click anywhere on plot to launch a new orbit",
+          title3d: "3D State-Space Trajectory (T, D, E)",
+          hint3d: "Drag horizontally or vertically to rotate",
+          titleAuxBif: "Transcritical Bifurcation Curve wrt α",
+          hintAuxBif: "Vertical crimson line marks analytical α_c (R₀ = 1)",
+          titleAuxPolicy: "Recommender Exploration–Exploitation Welfare Curve W(u)",
+          hintAuxPolicy: "Balances platform utility and healthy content diversity",
+          titleAuxSolver: "Pointwise Numerical Error |E_Euler(t) − E_RK4(t)|",
+          hintAuxSolver: "Increase Δt to observe O(h) truncation error vs O(h⁴)",
+          legE: "Engagement E(t)",
+          legT: "Usage Time T(t)",
+          legD: "Diversity D(t)",
+          legF: "Fatigue F(t)",
+          legPrimary: "Primary trajectory",
+          legAttractor: "Attractor (T*, E*)"
+        },
+        pt: {
+          title: "Dinâmica em Redes Sociais via EDOs — Laboratório Interativo",
+          subtitle: "Sistema acoplado não linear para engajamento E(t), tempo de uso T(t) e diversidade de conteúdo D(t) (Métodos Numéricos — CIn/UFPE).",
+          modeBaseline: "Modelo 3D",
+          modeFatigue: "Fadiga 4D",
+          modeSolver: "Euler vs RK4",
+          modePolicy: "Política de Recomendação",
+          clearTraces: "Limpar Órbitas Extras",
+          reset: "Restaurar Padrão",
+          presetGroup: "Cenário Comportamental",
+          paramsGroup: "Parâmetros do Modelo",
+          critHint: "Vermelho = limiar R₀=1",
+          initGroup: "Condição Inicial y(0) e Horizonte",
+          telR0: "Número de Ativação R₀",
+          telEq: "Equilíbrio Interno (E*, T*, D*)",
+          telEig: "Espectro do Jacobiano J(E*, T*, D*)",
+          telRH: "Margem de Routh–Hurwitz Δ₂",
+          activeBadge: "Ativo (R₀ > 1)",
+          dropoutBadge: "Abandono (R₀ ≤ 1)",
+          stableSpiral: "Foco Espiral Assintoticamente Estável",
+          stableNode: "Nó Assintoticamente Estável",
+          originStable: "Origem (0, 0, 0) Estável",
+          titleTime: "Evolução Temporal das Variáveis de Estado",
+          hintTime: "Linhas pontilhadas indicam o equilíbrio (E*, T*, D*)",
+          titlePhase: "Plano de Fase 2D: Engajamento E vs Tempo T",
+          hintPhase: "Clique em qualquer ponto do plano para lançar nova órbita",
+          title3d: "Trajetória no Espaço de Estados 3D (T, D, E)",
+          hint3d: "Arraste com o mouse para rotacionar a projeção 3D",
+          titleAuxBif: "Diagrama de Bifurcação Transcrítica em α",
+          hintAuxBif: "Linha vermelha tracejada marca α_c analítico (R₀ = 1)",
+          titleAuxPolicy: "Otimização de Recomendação: Curva de Bem-Estar W(u)",
+          hintAuxPolicy: "Equilíbrio entre retenção da plataforma e diversidade saudável",
+          titleAuxSolver: "Erro Numérico Pontual |E_Euler(t) − E_RK4(t)|",
+          hintAuxSolver: "Aumente Δt para comparar erro O(h) de Euler com RK4 O(h⁴)",
+          legE: "Engajamento E(t)",
+          legT: "Tempo de Uso T(t)",
+          legD: "Diversidade D(t)",
+          legF: "Fadiga F(t)",
+          legPrimary: "Trajetória principal",
+          legAttractor: "Atrator (T*, E*)"
+        }
+      };
+
+      const PARAM_DEFS = [
+        { key: "alpha", sym: "α", descEn: "Time → Engagement", descPt: "Tempo → Engajamento", min: 0.005, max: 0.50, step: 0.005 },
+        { key: "beta", sym: "β", descEn: "Engagement decay", descPt: "Decaimento de E", min: 0.005, max: 0.25, step: 0.002 },
+        { key: "kappa", sym: "κ", descEn: "Diversity penalty", descPt: "Penalidade de D", min: 0.001, max: 0.18, step: 0.002 },
+        { key: "gamma", sym: "γ", descEn: "Engagement → Time", descPt: "Engajamento → Tempo", min: 0.005, max: 0.35, step: 0.005 },
+        { key: "delta", sym: "δ", descEn: "Time decay", descPt: "Redução de T", min: 0.01, max: 0.35, step: 0.005 },
+        { key: "eta", sym: "η", descEn: "Engagement → Diversity", descPt: "Estímulo de D", min: 0.005, max: 0.30, step: 0.005 },
+        { key: "theta", sym: "θ", descEn: "Diversity decay", descPt: "Decaimento de D", min: 0.005, max: 0.25, step: 0.005 },
+        { key: "T_max", sym: "T_max", descEn: "Daily time cap (h)", descPt: "Limite diário (h)", min: 6.0, max: 24.0, step: 0.5 }
+      ];
+
+      const INIT_DEFS = [
+        { key: "E0", sym: "E(0)", min: 0.05, max: 8.0, step: 0.1 },
+        { key: "T0", sym: "T(0)", min: 0.05, max: 12.0, step: 0.1 },
+        { key: "D0", sym: "D(0)", min: 0.05, max: 10.0, step: 0.1 },
+        { key: "tEnd", sym: "t_end", min: 80, max: 600, step: 20 }
+      ];
+
+      const state = {
+        lang: "en",
+        mode: "baseline",
+        params: { ...PRESETS.baseline },
+        init: { E0: 1.0, T0: 1.0, D0: 1.0, tEnd: 300 },
+        fatigue: { mu: 1.35, tSafe: 3.0 },
+        solverDt: 2.8,
+        policyU: 0.48,
+        extraICs: [],
+        cam3d: { azim: -50, elev: 24, dragging: false, lastX: 0, lastY: 0 },
+        lastPhaseBounds: { maxT: 10, maxE: 8 }
+      };
+
+      function rhs3D(y, p) {
+        const E = Math.max(0, y[0]);
+        const T = Math.max(0, y[1]);
+        const D = Math.max(0, y[2]);
+        let dE = p.alpha * Math.tanh(T) - p.beta * E - p.kappa * D;
+        let dT = p.gamma * E * (1 - T / p.T_max) - p.delta * T;
+        let dD = p.eta * E - p.theta * D;
+        if (y[0] <= 0 && dE < 0) dE = 0;
+        if (y[1] <= 0 && dT < 0) dT = 0;
+        if (y[2] <= 0 && dD < 0) dD = 0;
+        return [dE, dT, dD];
+      }
+
+      function rhs4DFatigue(y, p, fat) {
+        const E = Math.max(0, y[0]);
+        const T = Math.max(0, y[1]);
+        const D = Math.max(0, y[2]);
+        const F = Math.max(0, y[3]);
+        const fFactor = 1.0 / (1.0 + fat.mu * F);
+        const divPen = p.kappa * E * D / (1.0 + D);
+        const dE = p.alpha * 2.5 * Math.tanh(T) * fFactor - p.beta * E - divPen;
+        const dT = p.gamma * 1.9 * E * (1 - T / p.T_max) - (p.delta + 0.14 * F) * T;
+        const dD = p.eta * E - p.theta * D;
+        const ex = Math.max(0, T - fat.tSafe);
+        const dF = 0.038 * ex * ex - 0.03 * F;
+        return [dE, dT, dD, dF];
+      }
+
+      function integrateRK4(rhsFn, y0, tEnd, nSteps) {
+        const h = tEnd / nSteps;
+        const dim = y0.length;
+        const ts = new Float64Array(nSteps + 1);
+        const ys = Array.from({ length: dim }, () => new Float64Array(nSteps + 1));
+        let cur = y0.slice();
+        for (let d = 0; d < dim; d++) ys[d][0] = cur[d];
+
+        for (let i = 0; i < nSteps; i++) {
+          ts[i + 1] = (i + 1) * h;
+          const k1 = rhsFn(cur);
+          const y2 = cur.map((v, idx) => Math.max(0, v + 0.5 * h * k1[idx]));
+          const k2 = rhsFn(y2);
+          const y3 = cur.map((v, idx) => Math.max(0, v + 0.5 * h * k2[idx]));
+          const k3 = rhsFn(y3);
+          const y4 = cur.map((v, idx) => Math.max(0, v + h * k3[idx]));
+          const k4 = rhsFn(y4);
+          for (let d = 0; d < dim; d++) {
+            cur[d] = Math.max(0, cur[d] + (h / 6) * (k1[d] + 2 * k2[d] + 2 * k3[d] + k4[d]));
+            ys[d][i + 1] = cur[d];
+          }
+        }
+        return { t: ts, y: ys };
+      }
+
+      function integrateEuler(rhsFn, y0, tEnd, dt) {
+        const nSteps = Math.max(4, Math.round(tEnd / dt));
+        const h = tEnd / nSteps;
+        const ts = new Float64Array(nSteps + 1);
+        const ys = [new Float64Array(nSteps + 1), new Float64Array(nSteps + 1), new Float64Array(nSteps + 1)];
+        let cur = y0.slice();
+        ys[0][0] = cur[0]; ys[1][0] = cur[1]; ys[2][0] = cur[2];
+        for (let i = 0; i < nSteps; i++) {
+          ts[i + 1] = (i + 1) * h;
+          const k = rhsFn(cur);
+          cur = [
+            Math.max(0, cur[0] + h * k[0]),
+            Math.max(0, cur[1] + h * k[1]),
+            Math.max(0, cur[2] + h * k[2])
+          ];
+          ys[0][i + 1] = cur[0]; ys[1][i + 1] = cur[1]; ys[2][i + 1] = cur[2];
+        }
+        return { t: ts, y: ys };
+      }
+
+      function computeR0(p) {
+        const den = p.delta * (p.beta * p.theta + p.kappa * p.eta);
+        return den > 0 ? (p.alpha * p.gamma * p.theta) / den : 0;
+      }
+
+      function computeCriticals(p) {
+        const { alpha: a, beta: b, kappa: k, gamma: g, delta: d, eta: e, theta: th } = p;
+        return {
+          alpha: (d * (b * th + k * e)) / (g * th),
+          beta: (a * g * th - k * d * e) / (d * th),
+          kappa: (th * (a * g - b * d)) / (d * e),
+          gamma: (d * (b * th + k * e)) / (a * th),
+          delta: (a * g * th) / (b * th + k * e),
+          eta: (th * (a * g - b * d)) / (k * d),
+          theta: (a * g > b * d) ? (k * d * e) / (a * g - b * d) : NaN
+        };
+      }
+
+      function findEquilibrium(p) {
+        const r0 = computeR0(p);
+        if (r0 <= 1.0) return null;
+        const kEff = p.beta + (p.kappa * p.eta) / p.theta;
+        let lo = 1e-9, hi = p.T_max * (1 - 1e-9);
+        for (let iter = 0; iter < 65; iter++) {
+          const mid = 0.5 * (lo + hi);
+          const eMid = (p.alpha * Math.tanh(mid)) / kEff;
+          const gVal = p.gamma * eMid * (1 - mid / p.T_max) - p.delta * mid;
+          if (gVal > 0) lo = mid; else hi = mid;
+        }
+        const T = 0.5 * (lo + hi);
+        const E = (p.alpha * Math.tanh(T)) / kEff;
+        const D = (p.eta / p.theta) * E;
+        return [E, T, D];
+      }
+
+      // Exact cubic roots of lambda^3 + c1*lambda^2 + c2*lambda + c3 = 0 via Cardano
+      function solveCubic(c1, c2, c3) {
+        const p = c2 - (c1 * c1) / 3.0;
+        const q = (2.0 * c1 * c1 * c1) / 27.0 - (c1 * c2) / 3.0 + c3;
+        const disc = (q * q) / 4.0 + (p * p * p) / 27.0;
+        const shift = -c1 / 3.0;
+
+        if (disc > 1e-16) {
+          const sqrtD = Math.sqrt(disc);
+          const u = Math.cbrt(-q / 2.0 + sqrtD);
+          const v = Math.cbrt(-q / 2.0 - sqrtD);
+          const r1 = u + v + shift;
+          const re = -0.5 * (u + v) + shift;
+          const im = (Math.sqrt(3) / 2.0) * Math.abs(u - v);
+          return [
+            { re: r1, im: 0 },
+            { re: re, im: im },
+            { re: re, im: -im }
+          ];
+        } else {
+          const r = Math.sqrt(Math.max(0, -(p * p * p) / 27.0));
+          const phi = r > 0 ? Math.acos(Math.max(-1, Math.min(1, -q / (2.0 * r)))) : 0;
+          const m = 2.0 * Math.cbrt(r);
+          return [
+            { re: m * Math.cos(phi / 3.0) + shift, im: 0 },
+            { re: m * Math.cos((phi + 2 * Math.PI) / 3.0) + shift, im: 0 },
+            { re: m * Math.cos((phi + 4 * Math.PI) / 3.0) + shift, im: 0 }
+          ];
+        }
+      }
+
+      function analyzePoint(y, p) {
+        const E = y[0], T = y[1];
+        const sech2 = 1.0 / (Math.cosh(T) ** 2);
+        const j00 = -p.beta, j01 = p.alpha * sech2, j02 = -p.kappa;
+        const j10 = p.gamma * (1 - T / p.T_max), j11 = -(p.gamma * E) / p.T_max - p.delta;
+        const j20 = p.eta, j22 = -p.theta;
+
+        const c1 = -(j00 + j11 + j22);
+        const m12 = j00 * j11 - j01 * j10;
+        const m13 = j00 * j22 - j02 * j20;
+        const m23 = j11 * j22;
+        const c2 = m12 + m13 + m23;
+        const detJ = j20 * (-j02 * j11) + j22 * (j00 * j11 - j01 * j10);
+        const c3 = -detJ;
+        const delta2 = c1 * c2 - c3;
+        const eigs = solveCubic(c1, c2, c3).sort((a, b) => b.re - a.re || Math.abs(b.im) - Math.abs(a.im));
+        return { c1, c2, c3, delta2, eigs };
+      }
+
+      function policyParams(u, base) {
+        return {
+          ...base,
+          alpha: base.alpha * (1.28 - 0.36 * u),
+          gamma: base.gamma * (1.30 - 0.45 * u),
+          eta: base.eta * (0.45 + 1.35 * u),
+          kappa: base.kappa * (0.65 + 0.90 * Math.pow(u, 1.5))
+        };
+      }
+
+      function evalPolicy(u, base) {
+        const p = policyParams(u, base);
+        const eq = findEquilibrium(p) || [0, 0, 0];
+        const [eS, tS, dS] = eq;
+        const rev = 0.65 * eS + 0.35 * tS;
+        const over = 0.42 * Math.pow(Math.max(0, tS - 3.5), 2);
+        const echo = 0.35 / (0.25 + dS);
+        const well = 0.45 * dS + 0.35 * eS - over - echo;
+        return { u, p, eq, rev, well, welfare: 0.5 * rev + 0.5 * well };
+      }
+
+      function buildSliders() {
+        const pContainer = document.getElementById("paramSliders");
+        pContainer.innerHTML = "";
+        const crits = computeCriticals(state.params);
+        PARAM_DEFS.forEach(def => {
+          const row = document.createElement("div");
+          row.className = "slider-row";
+          const desc = state.lang === "pt" ? def.descPt : def.descEn;
+          const cVal = crits[def.key];
+          const critHtml = (Number.isFinite(cVal) && cVal >= def.min && cVal <= def.max)
+            ? `<span class="crit-tag">(${def.sym}c=${cVal.toFixed(3)})</span>`
+            : "";
+          row.innerHTML = `
+            <div class="slider-header">
+              <span class="slider-label"><span class="math">${def.sym}</span> · ${desc}${critHtml}</span>
+              <span class="slider-meta" id="val_${def.key}">${state.params[def.key].toFixed(3)}</span>
+            </div>
+            <input type="range" min="${def.min}" max="${def.max}" step="${def.step}" value="${state.params[def.key]}" data-param="${def.key}" />
+          `;
+          pContainer.appendChild(row);
+        });
+
+        pContainer.querySelectorAll("input[type='range']").forEach(inp => {
+          inp.addEventListener("input", e => {
+            const k = e.target.dataset.param;
+            state.params[k] = parseFloat(e.target.value);
+            updateCritTagsOnly();
+            renderAll();
+          });
+        });
+
+        const iContainer = document.getElementById("initSliders");
+        iContainer.innerHTML = "";
+        INIT_DEFS.forEach(def => {
+          const row = document.createElement("div");
+          row.className = "slider-row";
+          row.innerHTML = `
+            <div class="slider-header">
+              <span class="slider-label"><span class="math">${def.sym}</span></span>
+              <span class="slider-meta" id="val_${def.key}">${state.init[def.key]}</span>
+            </div>
+            <input type="range" min="${def.min}" max="${def.max}" step="${def.step}" value="${state.init[def.key]}" data-init="${def.key}" />
+          `;
+          iContainer.appendChild(row);
+        });
+
+        iContainer.querySelectorAll("input[type='range']").forEach(inp => {
+          inp.addEventListener("input", e => {
+            const k = e.target.dataset.init;
+            state.init[k] = parseFloat(e.target.value);
+            document.getElementById(`val_${k}`).textContent = k === "tEnd" ? `${state.init[k]}d` : state.init[k].toFixed(2);
+            renderAll();
+          });
+        });
+      }
+
+      function updateCritTagsOnly() {
+        const crits = computeCriticals(state.params);
+        PARAM_DEFS.forEach(def => {
+          const el = document.getElementById(`val_${def.key}`);
+          if (el) el.textContent = def.key === "T_max" ? `${state.params[def.key].toFixed(1)}h` : state.params[def.key].toFixed(3);
+          const inp = document.querySelector(`input[data-param='${def.key}']`);
+          if (inp) {
+            const desc = state.lang === "pt" ? def.descPt : def.descEn;
+            const cVal = crits[def.key];
+            const critHtml = (Number.isFinite(cVal) && cVal >= def.min && cVal <= def.max)
+              ? `<span class="crit-tag">(${def.sym}c=${cVal.toFixed(3)})</span>`
+              : "";
+            inp.previousElementSibling.querySelector(".slider-label").innerHTML = `<span class="math">${def.sym}</span> · ${desc}${critHtml}`;
+          }
+        });
+      }
+
+      function buildModeExtra() {
+        const box = document.getElementById("modeExtraBox");
+        const pt = state.lang === "pt";
+        if (state.mode === "baseline") {
+          box.style.display = "none";
+          return;
+        }
+        box.style.display = "block";
+        if (state.mode === "fatigue") {
+          box.innerHTML = `
+            <div class="group-title"><span>${pt ? "Extensão 4D: Fadiga Cognitiva F(t)" : "4D Cognitive Fatigue Controls"}</span></div>
+            <div class="slider-row">
+              <div class="slider-header"><span class="slider-label">μ (${pt ? "Supressão por fadiga" : "Fatigue suppression"})</span><span class="slider-meta" id="val_mu">${state.fatigue.mu.toFixed(2)}</span></div>
+              <input type="range" id="rngMu" min="0.1" max="3.0" step="0.05" value="${state.fatigue.mu}" />
+            </div>
+            <div class="slider-row" style="margin-bottom:0">
+              <div class="slider-header"><span class="slider-label">T_safe (${pt ? "Limite saudável" : "Safe daily hours"})</span><span class="slider-meta" id="val_tsafe">${state.fatigue.tSafe.toFixed(1)}h</span></div>
+              <input type="range" id="rngTSafe" min="1.0" max="8.0" step="0.2" value="${state.fatigue.tSafe}" />
+            </div>
+          `;
+          document.getElementById("rngMu").addEventListener("input", e => {
+            state.fatigue.mu = parseFloat(e.target.value);
+            document.getElementById("val_mu").textContent = state.fatigue.mu.toFixed(2);
+            renderAll();
+          });
+          document.getElementById("rngTSafe").addEventListener("input", e => {
+            state.fatigue.tSafe = parseFloat(e.target.value);
+            document.getElementById("val_tsafe").textContent = `${state.fatigue.tSafe.toFixed(1)}h`;
+            renderAll();
+          });
+        } else if (state.mode === "solver") {
+          box.innerHTML = `
+            <div class="group-title"><span>${pt ? "Passo do Método de Euler Explícito" : "Forward Euler Step Size Δt"}</span></div>
+            <div class="slider-row" style="margin-bottom:0">
+              <div class="slider-header"><span class="slider-label">Δt (Euler O(h) vs RK4 O(h⁴))</span><span class="slider-meta" id="val_dt">${state.solverDt.toFixed(2)}</span></div>
+              <input type="range" id="rngDt" min="0.2" max="9.0" step="0.2" value="${state.solverDt}" />
+            </div>
+          `;
+          document.getElementById("rngDt").addEventListener("input", e => {
+            state.solverDt = parseFloat(e.target.value);
+            document.getElementById("val_dt").textContent = state.solverDt.toFixed(2);
+            renderAll();
+          });
+        } else if (state.mode === "policy") {
+          box.innerHTML = `
+            <div class="group-title"><span>${pt ? "Controle do Algoritmo de Recomendação" : "Algorithmic Exploration Dial u"}</span></div>
+            <div class="slider-row" style="margin-bottom:0">
+              <div class="slider-header"><span class="slider-label">u ∈ [0, 1] (${pt ? "0=Bolha, 1=Diversidade" : "0=Exploit, 1=Explore"})</span><span class="slider-meta" id="val_u">${state.policyU.toFixed(2)}</span></div>
+              <input type="range" id="rngPolicyU" min="0" max="1" step="0.02" value="${state.policyU}" />
+            </div>
+          `;
+          document.getElementById("rngPolicyU").addEventListener("input", e => {
+            state.policyU = parseFloat(e.target.value);
+            document.getElementById("val_u").textContent = state.policyU.toFixed(2);
+            renderAll();
+          });
+        }
+      }
+
+      function setupCanvas(canvas) {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        const w = Math.max(260, rect.width);
+        const h = Math.max(200, rect.height);
+        if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+          canvas.width = Math.round(w * dpr);
+          canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+      }
+
+      function drawAxes(ctx, pad, w, h, xMax, yMax, xLabel, yLabel, xMin = 0, yMin = 0) {
+        const pw = w - pad.l - pad.r;
+        const ph = h - pad.t - pad.b;
+        ctx.strokeStyle = "#E2E8F0";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#4A5B70";
+        ctx.font = "11px 'IBM Plex Sans', sans-serif";
+
+        const nTicks = 5;
+        for (let i = 0; i <= nTicks; i++) {
+          const frac = i / nTicks;
+          const y = pad.t + ph * (1 - frac);
+          const valY = yMin + frac * (yMax - yMin);
+          ctx.beginPath();
+          ctx.moveTo(pad.l, y);
+          ctx.lineTo(pad.l + pw, y);
+          ctx.stroke();
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(valY.toFixed(valY >= 10 ? 1 : 2), pad.l - 6, y);
+
+          const x = pad.l + pw * frac;
+          const valX = xMin + frac * (xMax - xMin);
+          ctx.beginPath();
+          ctx.moveTo(x, pad.t);
+          ctx.lineTo(x, pad.t + ph);
+          ctx.stroke();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          ctx.fillText(valX.toFixed(xMax >= 20 ? 0 : 2), x, pad.t + ph + 6);
+        }
+
+        ctx.strokeStyle = "#94A3B8";
+        ctx.strokeRect(pad.l, pad.t, pw, ph);
+
+        ctx.fillStyle = "#0F1D2E";
+        ctx.font = "600 11.5px 'IBM Plex Sans', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(xLabel, pad.l + pw / 2, h - 10);
+
+        ctx.save();
+        ctx.translate(13, pad.t + ph / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(yLabel, 0, 0);
+        ctx.restore();
+
+        return {
+          toX: v => pad.l + ((v - xMin) / (xMax - xMin || 1)) * pw,
+          toY: v => pad.t + ph - ((v - yMin) / (yMax - yMin || 1)) * ph,
+          fromX: px => xMin + ((px - pad.l) / pw) * (xMax - xMin),
+          fromY: py => yMin + ((pad.t + ph - py) / ph) * (yMax - yMin),
+          pw, ph
+        };
+      }
+
+      function plotLine(ctx, xs, ys, map, color, width = 2.2, dash = []) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.setLineDash(dash);
+        for (let i = 0; i < xs.length; i++) {
+          const px = map.toX(xs[i]);
+          const py = map.toY(ys[i]);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function renderAll() {
+        const txt = I18N[state.lang];
+        const activeParams = state.mode === "policy" ? policyParams(state.policyU, state.params) : state.params;
+
+        const r0 = computeR0(activeParams);
+        const eq = findEquilibrium(activeParams);
+        const spec = eq ? analyzePoint(eq, activeParams) : analyzePoint([0, 0, 0], activeParams);
+
+        document.getElementById("valR0").textContent = r0.toFixed(4);
+        const badge = document.getElementById("regimeBadge");
+        if (r0 > 1.0) {
+          badge.textContent = txt.activeBadge;
+          badge.className = "status-pill status-ok";
+        } else {
+          badge.textContent = txt.dropoutBadge;
+          badge.className = "status-pill status-warn";
+        }
+
+        if (eq) {
+          document.getElementById("valEq").textContent = `(${eq[0].toFixed(3)}, ${eq[1].toFixed(3)}, ${eq[2].toFixed(3)})`;
+          const hasIm = Math.abs(spec.eigs[1].im) > 1e-5;
+          document.getElementById("subEq").textContent = hasIm ? txt.stableSpiral : txt.stableNode;
+        } else {
+          document.getElementById("valEq").textContent = "(0.000, 0.000, 0.000)";
+          document.getElementById("subEq").textContent = txt.originStable;
+        }
+
+        const complexEig = spec.eigs.find(e => Math.abs(e.im) > 1e-5);
+        if (complexEig) {
+          const realEig = spec.eigs.find(e => Math.abs(e.im) <= 1e-5) || spec.eigs[2];
+          document.getElementById("valEigLead").textContent = `${complexEig.re.toFixed(4)} ± ${Math.abs(complexEig.im).toFixed(4)}i`;
+          document.getElementById("subEig3").textContent = `λ₃ = ${realEig.re.toFixed(4)}`;
+        } else {
+          document.getElementById("valEigLead").textContent = `λ₁=${spec.eigs[0].re.toFixed(3)}, λ₂=${spec.eigs[1].re.toFixed(3)}`;
+          document.getElementById("subEig3").textContent = `λ₃ = ${spec.eigs[2].re.toFixed(4)}`;
+        }
+
+        document.getElementById("valRH").textContent = (spec.delta2 >= 0 ? "+" : "") + spec.delta2.toFixed(5);
+        document.getElementById("subRH").textContent = `c₁=${spec.c1.toFixed(2)}, c₃=${spec.c3.toFixed(4)}`;
+
+        // Simulate primary trajectory
+        const tEnd = state.init.tEnd;
+        const y0_3d = [state.init.E0, state.init.T0, state.init.D0];
+        let simMain;
+        if (state.mode === "fatigue") {
+          simMain = integrateRK4(y => rhs4DFatigue(y, activeParams, state.fatigue), [...y0_3d, 0.1], tEnd, 900);
+          document.getElementById("legFatWrap").style.display = "inline-flex";
+        } else {
+          simMain = integrateRK4(y => rhs3D(y, activeParams), y0_3d, tEnd, 800);
+          document.getElementById("legFatWrap").style.display = "none";
+        }
+
+        let simEuler = null;
+        if (state.mode === "solver") {
+          simEuler = integrateEuler(y => rhs3D(y, activeParams), y0_3d, tEnd, state.solverDt);
+        }
+
+        // 1. Time Series Canvas
+        const cTime = setupCanvas(document.getElementById("timeCanvas"));
+        let maxY = 1.5;
+        for (let d = 0; d < simMain.y.length; d++) {
+          for (let i = 0; i < simMain.y[d].length; i++) maxY = Math.max(maxY, simMain.y[d][i]);
+        }
+        if (simEuler) {
+          for (let i = 0; i < simEuler.y[0].length; i++) maxY = Math.max(maxY, simEuler.y[0][i], simEuler.y[1][i]);
+        }
+        maxY *= 1.12;
+        const pad = { l: 46, r: 16, t: 12, b: 34 };
+        const mapT = drawAxes(cTime.ctx, pad, cTime.w, cTime.h, tEnd, maxY, state.lang === "pt" ? "Tempo (t)" : "Time (t)", state.lang === "pt" ? "Nível" : "Magnitude");
+
+        if (eq && state.mode !== "fatigue") {
+          plotLine(cTime.ctx, [0, tEnd], [eq[0], eq[0]], mapT, "#0F4C81", 1.1, [4, 4]);
+          plotLine(cTime.ctx, [0, tEnd], [eq[1], eq[1]], mapT, "#0D8A72", 1.1, [4, 4]);
+          plotLine(cTime.ctx, [0, tEnd], [eq[2], eq[2]], mapT, "#C05621", 1.1, [4, 4]);
+        }
+        plotLine(cTime.ctx, simMain.t, simMain.y[0], mapT, "#0F4C81", 2.3);
+        plotLine(cTime.ctx, simMain.t, simMain.y[1], mapT, "#0D8A72", 2.3);
+        plotLine(cTime.ctx, simMain.t, simMain.y[2], mapT, "#C05621", 2.3);
+        if (state.mode === "fatigue") {
+          plotLine(cTime.ctx, simMain.t, simMain.y[3], mapT, "#6B3FA0", 2.1, [6, 3]);
+        }
+        if (simEuler) {
+          plotLine(cTime.ctx, simEuler.t, simEuler.y[0], mapT, "#B91C1C", 1.6, [5, 3]);
+        }
+
+        // 2. 2D Phase Plane Canvas (T on x-axis, E on y-axis)
+        const cPhase = setupCanvas(document.getElementById("phaseCanvas"));
+        const maxT = Math.min(activeParams.T_max, Math.max(8.0, (eq ? eq[1] : 3) * 1.75, state.init.T0 * 1.25));
+        const maxE = Math.max(6.0, (eq ? eq[0] : 3) * 1.65, state.init.E0 * 1.25);
+        state.lastPhaseBounds = { maxT, maxE, pad, w: cPhase.w, h: cPhase.h };
+        const mapP = drawAxes(cPhase.ctx, pad, cPhase.w, cPhase.h, maxT, maxE, "T(t)", "E(t)");
+
+        // Vector field arrows on quasi-steady D = (eta/theta)*E slice
+        cPhase.ctx.strokeStyle = "#CBD5E1";
+        cPhase.ctx.fillStyle = "#94A3B8";
+        cPhase.ctx.lineWidth = 1.0;
+        const nx = 13, ny = 10;
+        for (let ix = 1; ix < nx; ix++) {
+          for (let iy = 1; iy < ny; iy++) {
+            const tv = (ix / nx) * maxT;
+            const ev = (iy / ny) * maxE;
+            const dv = (activeParams.eta / activeParams.theta) * ev;
+            const [de, dt] = rhs3D([ev, tv, dv], activeParams);
+            const norm = Math.hypot(dt / maxT, de / maxE);
+            if (norm > 1e-6) {
+              const px = mapP.toX(tv), py = mapP.toY(ev);
+              const dx = ((dt / maxT) / norm) * 11;
+              const dy = -((de / maxE) / norm) * 11;
+              cPhase.ctx.beginPath();
+              cPhase.ctx.moveTo(px - dx * 0.5, py - dy * 0.5);
+              cPhase.ctx.lineTo(px + dx * 0.5, py + dy * 0.5);
+              cPhase.ctx.stroke();
+              cPhase.ctx.beginPath();
+              cPhase.ctx.arc(px + dx * 0.5, py + dy * 0.5, 1.5, 0, 2 * Math.PI);
+              cPhase.ctx.fill();
+            }
+          }
+        }
+
+        // Extra user-clicked trajectories
+        const extraColors = ["#7B3FA0", "#D97706", "#0284C7", "#059669"];
+        state.extraICs.forEach((ic, idx) => {
+          const sEx = integrateRK4(y => rhs3D(y, activeParams), ic, tEnd, 550);
+          const col = extraColors[idx % extraColors.length];
+          plotLine(cPhase.ctx, sEx.y[1], sEx.y[0], mapP, col, 1.7);
+          cPhase.ctx.fillStyle = col;
+          cPhase.ctx.beginPath();
+          cPhase.ctx.arc(mapP.toX(ic[1]), mapP.toY(ic[0]), 3.5, 0, 2 * Math.PI);
+          cPhase.ctx.fill();
+        });
+
+        plotLine(cPhase.ctx, simMain.y[1], simMain.y[0], mapP, "#0F4C81", 2.4);
+        cPhase.ctx.fillStyle = "#0F4C81";
+        cPhase.ctx.beginPath();
+        cPhase.ctx.arc(mapP.toX(simMain.y[1][0]), mapP.toY(simMain.y[0][0]), 4.5, 0, 2 * Math.PI);
+        cPhase.ctx.fill();
+
+        const attT = eq ? eq[1] : 0;
+        const attE = eq ? eq[0] : 0;
+        cPhase.ctx.fillStyle = "#B91C1C";
+        cPhase.ctx.beginPath();
+        cPhase.ctx.arc(mapP.toX(attT), mapP.toY(attE), 5.5, 0, 2 * Math.PI);
+        cPhase.ctx.fill();
+
+        // 3. 3D Orbit Projection Canvas
+        render3DOrbit(simMain, eq, activeParams, tEnd);
+
+        // 4. Contextual 4th Plot (Bifurcation / Policy / Solver Error)
+        renderAuxCanvas(activeParams, simMain, simEuler, tEnd);
+      }
+
+      function render3DOrbit(simMain, eq, activeParams, tEnd) {
+        const { ctx, w, h } = setupCanvas(document.getElementById("orbit3dCanvas"));
+        const az = (state.cam3d.azim * Math.PI) / 180;
+        const el = (state.cam3d.elev * Math.PI) / 180;
+        document.getElementById("leg3dInfo").textContent =
+          `${state.lang === "pt" ? "Azimute" : "Azimuth"}: ${Math.round(state.cam3d.azim)}° | ${state.lang === "pt" ? "Elevação" : "Elevation"}: ${Math.round(state.cam3d.elev)}°`;
+
+        let maxT = Math.max(6, state.init.T0), maxD = Math.max(6, state.init.D0), maxE = Math.max(5, state.init.E0);
+        for (let i = 0; i < simMain.t.length; i++) {
+          maxE = Math.max(maxE, simMain.y[0][i]);
+          maxT = Math.max(maxT, simMain.y[1][i]);
+          maxD = Math.max(maxD, simMain.y[2][i]);
+        }
+        maxT *= 1.1; maxD *= 1.1; maxE *= 1.1;
+
+        const scale = Math.min(w, h) * 0.36;
+        const cx = w * 0.5, cy = h * 0.56;
+
+        function proj(tVal, dVal, eVal) {
+          const x = tVal / maxT - 0.5;
+          const y = dVal / maxD - 0.5;
+          const z = eVal / maxE - 0.5;
+          const x1 = x * Math.cos(az) - y * Math.sin(az);
+          const y1 = x * Math.sin(az) + y * Math.cos(az);
+          const z2 = z * Math.cos(el) - y1 * Math.sin(el);
+          return [cx + x1 * scale * 1.45, cy - z2 * scale * 1.45];
+        }
+
+        // Draw bounding wireframe floor and axes
+        ctx.strokeStyle = "#D6E0EC";
+        ctx.lineWidth = 1;
+        const corners = [
+          proj(0, 0, 0), proj(maxT, 0, 0), proj(maxT, maxD, 0), proj(0, maxD, 0)
+        ];
+        ctx.beginPath();
+        corners.forEach((pt, idx) => idx === 0 ? ctx.moveTo(pt[0], pt[1]) : ctx.lineTo(pt[0], pt[1]));
+        ctx.closePath();
+        ctx.stroke();
+
+        const origin = proj(0, 0, 0);
+        const axEnds = [
+          { p: proj(maxT, 0, 0), lbl: `T (${maxT.toFixed(1)})`, col: "#0D8A72" },
+          { p: proj(0, maxD, 0), lbl: `D (${maxD.toFixed(1)})`, col: "#C05621" },
+          { p: proj(0, 0, maxE), lbl: `E (${maxE.toFixed(1)})`, col: "#0F4C81" }
+        ];
+        ctx.font = "600 11px 'IBM Plex Sans', sans-serif";
+        axEnds.forEach(a => {
+          ctx.strokeStyle = a.col;
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(origin[0], origin[1]);
+          ctx.lineTo(a.p[0], a.p[1]);
+          ctx.stroke();
+          ctx.fillStyle = a.col;
+          ctx.fillText(a.lbl, a.p[0] + 4, a.p[1] - 4);
+        });
+
+        state.extraICs.forEach((ic, idx) => {
+          const sEx = integrateRK4(y => rhs3D(y, activeParams), ic, tEnd, 450);
+          ctx.strokeStyle = ["#7B3FA0", "#D97706", "#0284C7", "#059669"][idx % 4];
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          for (let i = 0; i < sEx.t.length; i++) {
+            const [px, py] = proj(sEx.y[1][i], sEx.y[2][i], sEx.y[0][i]);
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        });
+
+        ctx.strokeStyle = "#0F4C81";
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        for (let i = 0; i < simMain.t.length; i++) {
+          const [px, py] = proj(simMain.y[1][i], simMain.y[2][i], simMain.y[0][i]);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        const target = eq || [0, 0, 0];
+        const [ex, ey] = proj(target[1], target[2], target[0]);
+        ctx.fillStyle = "#B91C1C";
+        ctx.beginPath();
+        ctx.arc(ex, ey, 5.5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      function renderAuxCanvas(activeParams, simMain, simEuler, tEnd) {
+        const txt = I18N[state.lang];
+        const titleEl = document.getElementById("titleAuxPlot");
+        const hintEl = document.getElementById("hintAuxPlot");
+        const { ctx, w, h } = setupCanvas(document.getElementById("auxCanvas"));
+        const pad = { l: 46, r: 16, t: 12, b: 34 };
+
+        if (state.mode === "policy") {
+          titleEl.textContent = txt.titleAuxPolicy;
+          hintEl.textContent = txt.hintAuxPolicy;
+          const nG = 50;
+          const uArr = [], revArr = [], wellArr = [], totArr = [];
+          let bestU = 0, bestW = -1e9, maxVal = 1;
+          for (let i = 0; i <= nG; i++) {
+            const u = i / nG;
+            const ev = evalPolicy(u, state.params);
+            uArr.push(u);
+            revArr.push(ev.rev);
+            wellArr.push(ev.well);
+            totArr.push(ev.welfare);
+            maxVal = Math.max(maxVal, ev.rev, ev.well, ev.welfare);
+            if (ev.welfare > bestW) { bestW = ev.welfare; bestU = u; }
+          }
+          const minVal = Math.min(0, ...wellArr) * 1.1;
+          const map = drawAxes(ctx, pad, w, h, 1.0, maxVal * 1.1, "u ∈ [0, 1]", "Score", 0, minVal);
+          plotLine(ctx, uArr, revArr, map, "#0F4C81", 1.9, [5, 4]);
+          plotLine(ctx, uArr, wellArr, map, "#0D8A72", 1.9, [3, 3]);
+          plotLine(ctx, uArr, totArr, map, "#0F1D2E", 2.5);
+          plotLine(ctx, [bestU, bestU], [minVal, maxVal * 1.1], map, "#B91C1C", 1.4, [4, 4]);
+
+          const curEv = evalPolicy(state.policyU, state.params);
+          ctx.fillStyle = "#B91C1C";
+          ctx.beginPath();
+          ctx.arc(map.toX(state.policyU), map.toY(curEv.welfare), 5.5, 0, 2 * Math.PI);
+          ctx.fill();
+          return;
+        }
+
+        if (state.mode === "solver" && simEuler) {
+          titleEl.textContent = txt.titleAuxSolver;
+          hintEl.textContent = txt.hintAuxSolver;
+          const errs = new Float64Array(simEuler.t.length);
+          let maxErr = 1e-4;
+          for (let i = 0; i < simEuler.t.length; i++) {
+            const tQ = simEuler.t[i];
+            const idxRK = Math.min(simMain.t.length - 1, Math.round((tQ / tEnd) * (simMain.t.length - 1)));
+            errs[i] = Math.abs(simEuler.y[0][i] - simMain.y[0][idxRK]);
+            maxErr = Math.max(maxErr, errs[i]);
+          }
+          const map = drawAxes(ctx, pad, w, h, tEnd, maxErr * 1.15, state.lang === "pt" ? "Tempo (t)" : "Time (t)", "|E_Euler − E_RK4|");
+          plotLine(ctx, simEuler.t, errs, map, "#B91C1C", 2.1);
+          return;
+        }
+
+        // Default: Analytical Bifurcation Curve wrt alpha
+        titleEl.textContent = txt.titleAuxBif;
+        hintEl.textContent = txt.hintAuxBif;
+        const nA = 70;
+        const aMax = 0.50;
+        const aArr = [], eCurve = [], tCurve = [], dCurve = [];
+        let yTop = 2.0;
+        for (let i = 0; i <= nA; i++) {
+          const a = (i / nA) * aMax;
+          const pTmp = { ...activeParams, alpha: a };
+          const eqA = findEquilibrium(pTmp) || [0, 0, 0];
+          aArr.push(a);
+          eCurve.push(eqA[0]); tCurve.push(eqA[1]); dCurve.push(eqA[2]);
+          yTop = Math.max(yTop, eqA[0], eqA[1], eqA[2]);
+        }
+        yTop *= 1.08;
+        const map = drawAxes(ctx, pad, w, h, aMax, yTop, "α (alpha)", state.lang === "pt" ? "Equilíbrio" : "Equilibrium");
+        plotLine(ctx, aArr, eCurve, map, "#0F4C81", 2.1);
+        plotLine(ctx, aArr, tCurve, map, "#0D8A72", 2.1);
+        plotLine(ctx, aArr, dCurve, map, "#C05621", 2.1);
+
+        const aCrit = computeCriticals(activeParams).alpha;
+        if (Number.isFinite(aCrit) && aCrit <= aMax) {
+          plotLine(ctx, [aCrit, aCrit], [0, yTop], map, "#B91C1C", 1.5, [5, 4]);
+        }
+        if (activeParams.alpha <= aMax) {
+          plotLine(ctx, [activeParams.alpha, activeParams.alpha], [0, yTop], map, "#0F1D2E", 1.2, [2, 3]);
+        }
+      }
+
+      function applyLanguage() {
+        const t = I18N[state.lang];
+        document.getElementById("uiTitle").textContent = t.title;
+        document.getElementById("uiSubtitle").textContent = t.subtitle;
+        document.getElementById("modeBaseline").textContent = t.modeBaseline;
+        document.getElementById("modeFatigue").textContent = t.modeFatigue;
+        document.getElementById("modeSolver").textContent = t.modeSolver;
+        document.getElementById("modePolicy").textContent = t.modePolicy;
+        document.getElementById("btnClearTraces").textContent = t.clearTraces;
+        document.getElementById("btnReset").textContent = t.reset;
+        document.getElementById("lblPresetGroup").textContent = t.presetGroup;
+        document.getElementById("lblParamsGroup").textContent = t.paramsGroup;
+        document.getElementById("lblCritHint").textContent = t.critHint;
+        document.getElementById("lblInitGroup").textContent = t.initGroup;
+        document.getElementById("telR0Label").textContent = t.telR0;
+        document.getElementById("telEqLabel").textContent = t.telEq;
+        document.getElementById("telEigenLabel").textContent = t.telEig;
+        document.getElementById("telRHLabel").textContent = t.telRH;
+        document.getElementById("titleTimePlot").textContent = t.titleTime;
+        document.getElementById("hintTimePlot").textContent = t.hintTime;
+        document.getElementById("titlePhasePlot").textContent = t.titlePhase;
+        document.getElementById("hintPhasePlot").textContent = t.hintPhase;
+        document.getElementById("title3dPlot").textContent = t.title3d;
+        document.getElementById("hint3dPlot").textContent = t.hint3d;
+        document.getElementById("legE").textContent = t.legE;
+        document.getElementById("legT").textContent = t.legT;
+        document.getElementById("legD").textContent = t.legD;
+        document.getElementById("legF").textContent = t.legF;
+        document.getElementById("legPrimaryOrbit").textContent = t.legPrimary;
+        document.getElementById("legFixedPoint").textContent = t.legAttractor;
+
+        buildSliders();
+        buildModeExtra();
+        renderAll();
+      }
+
+      // Event Listeners
+      document.getElementById("presetSelect").addEventListener("change", e => {
+        const chosen = PRESETS[e.target.value];
+        if (chosen) {
+          state.params = { ...chosen };
+          buildSliders();
+          renderAll();
+        }
+      });
+
+      document.querySelectorAll("[data-mode]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("[data-mode]").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.mode = btn.dataset.mode;
+          buildModeExtra();
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll("[data-lang]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("[data-lang]").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.lang = btn.dataset.lang;
+          applyLanguage();
+        });
+      });
+
+      document.getElementById("btnClearTraces").addEventListener("click", () => {
+        state.extraICs = [];
+        renderAll();
+      });
+
+      document.getElementById("btnReset").addEventListener("click", () => {
+        state.params = { ...PRESETS.baseline };
+        state.init = { E0: 1.0, T0: 1.0, D0: 1.0, tEnd: 300 };
+        state.extraICs = [];
+        document.getElementById("presetSelect").value = "baseline";
+        buildSliders();
+        renderAll();
+      });
+
+      // Phase plane click -> add initial condition
+      document.getElementById("phaseCanvas").addEventListener("click", e => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        const { maxT, maxE, pad, w, h } = state.lastPhaseBounds;
+        const pw = w - pad.l - pad.r;
+        const ph = h - pad.t - pad.b;
+        if (px < pad.l || px > pad.l + pw || py < pad.t || py > pad.t + ph) return;
+        const tClick = Math.max(0.05, ((px - pad.l) / pw) * maxT);
+        const eClick = Math.max(0.05, ((pad.t + ph - py) / ph) * maxE);
+        const dClick = (state.params.eta / state.params.theta) * eClick;
+        state.extraICs.push([eClick, tClick, dClick]);
+        if (state.extraICs.length > 6) state.extraICs.shift();
+        renderAll();
+      });
+
+      // 3D Orbit drag rotation
+      const c3d = document.getElementById("orbit3dCanvas");
+      c3d.addEventListener("pointerdown", e => {
+        state.cam3d.dragging = true;
+        state.cam3d.lastX = e.clientX;
+        state.cam3d.lastY = e.clientY;
+        c3d.setPointerCapture(e.pointerId);
+      });
+      c3d.addEventListener("pointermove", e => {
+        if (!state.cam3d.dragging) return;
+        const dx = e.clientX - state.cam3d.lastX;
+        const dy = e.clientY - state.cam3d.lastY;
+        state.cam3d.lastX = e.clientX;
+        state.cam3d.lastY = e.clientY;
+        state.cam3d.azim += dx * 0.6;
+        state.cam3d.elev = Math.max(-75, Math.min(75, state.cam3d.elev + dy * 0.5));
+        renderAll();
+      });
+      c3d.addEventListener("pointerup", () => { state.cam3d.dragging = false; });
+
+      window.addEventListener("resize", () => renderAll());
+
+      buildSliders();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
